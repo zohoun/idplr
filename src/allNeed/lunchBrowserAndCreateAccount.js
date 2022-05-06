@@ -71,22 +71,22 @@ async function protectePage(page2) {
   await page2.setDefaultNavigationTimeout(0);
 }
 function sleep(milliseconds) {
-  const date = Date.now();
-  let currentDate = null;
-  do {
-    currentDate = Date.now();
-  } while (currentDate - date < milliseconds);
+    const date = Date.now();
+    let currentDate = null;
+    do {
+        currentDate = Date.now();
+    } while (currentDate - date < milliseconds);
 }
 const RecaptchaPlugin = require('puppeteer-extra-plugin-recaptcha');
 const arrayPosition = ['--window-position=000,000', '--window-position=360,000', '--window-position=720,000', '--window-position=000,500', '--window-position=360,500', '--window-position=720,500'];
 puppeteer.use(
-  RecaptchaPlugin({
-    provider: {
-      id: '2captcha',
-      token: '92f2f86ffc226783191508dc6f26fdb9' // REPLACE THIS WITH YOUR OWN 2CAPTCHA API KEY ⚡
-    },
-    visualFeedback: true // colorize reCAPTCHAs (violet = detected, green = solved)
-  })
+    RecaptchaPlugin({
+        provider: {
+            id: '2captcha',
+            token: '92f2f86ffc226783191508dc6f26fdb9' // REPLACE THIS WITH YOUR OWN 2CAPTCHA API KEY ⚡
+        },
+        visualFeedback: true // colorize reCAPTCHAs (violet = detected, green = solved)
+    })
 );
 module.exports = async function lunchBrowserAndCreateAccount(accounts, app) {
   process.setMaxListeners(0);
@@ -191,6 +191,5 @@ module.exports = async function lunchBrowserAndCreateAccount(accounts, app) {
     } catch (error) {
       console.log(error);
     }
-  }
 
 };

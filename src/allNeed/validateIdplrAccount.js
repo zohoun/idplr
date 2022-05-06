@@ -70,11 +70,11 @@ async function protectePage(page2) {
   await page2.setDefaultNavigationTimeout(0);
 }
 function sleep(milliseconds) {
-  const date = Date.now();
-  let currentDate = null;
-  do {
-    currentDate = Date.now();
-  } while (currentDate - date < milliseconds);
+    const date = Date.now();
+    let currentDate = null;
+    do {
+        currentDate = Date.now();
+    } while (currentDate - date < milliseconds);
 }
 // var objShell = new ActiveXObject("Shell.Application");
 module.exports = async function validateIdplrAccount(accounts, app) {
@@ -169,6 +169,5 @@ module.exports = async function validateIdplrAccount(accounts, app) {
     } catch (error) {
       console.log(error);
     }
-  }
 
 };
