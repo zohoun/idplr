@@ -191,5 +191,5 @@ module.exports = async function lunchBrowserAndCreateAccount(accounts, app) {
     } catch (error) {
       console.log(error);
     }
-
+  }
 };
