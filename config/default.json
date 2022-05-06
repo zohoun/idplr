@@ -6,5 +6,5 @@
         "default": 10,
         "max": 50
     },
-    "mongodb": "mongodb://localhost:27017/idplr"
+    "mongodb": "mongodb+srv://zohoun:sqk5FtsbW4foenEE@cluster0.qqj65.mongodb.net/idplr?retryWrites=true&w=majority"
 }

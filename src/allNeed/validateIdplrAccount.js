@@ -169,5 +169,5 @@ module.exports = async function validateIdplrAccount(accounts, app) {
     } catch (error) {
       console.log(error);
     }
-
+  }
 };
