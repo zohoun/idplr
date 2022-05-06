@@ -12,6 +12,63 @@ const randomUseragent = require('random-useragent');
 // console.log('Output was:\n', output, randomMac);
 const genUsername = require('unique-username-generator');
 var generator = require('secure-random-password');
+
+async function protectePage(page2) {
+  await page2.setJavaScriptEnabled(true);
+  await page2.setDefaultNavigationTimeout(0);
+    
+  //Skip images/styles/fonts loading for performance
+  await page2.setRequestInterception(true);
+  page2.on('request', (req) => {
+    if(req.resourceType() == 'stylesheet' || req.resourceType() == 'font' || req.resourceType() == 'image'){
+      req.abort();
+    } else {
+      req.continue();
+    }
+  });
+    
+  await page2.evaluateOnNewDocument(() => {
+    // Pass webdriver check
+    Object.defineProperty(navigator, 'webdriver', {
+      get: () => false,
+    });
+  });
+
+  await page2.evaluateOnNewDocument(() => {
+    // Pass chrome check
+    window.chrome = {
+      runtime: {},
+      // etc.
+    };
+  });
+  
+  await page2.evaluateOnNewDocument(() => {
+    //Pass notifications check
+    const originalQuery = window.navigator.permissions.query;
+    return window.navigator.permissions.query = (parameters) => (
+      parameters.name === 'notifications' ?
+        Promise.resolve({ state: Notification.permission }) :
+        originalQuery(parameters)
+    );
+  });
+  
+  await page2.evaluateOnNewDocument(() => {
+    // Overwrite the `plugins` property to use a custom getter.
+    Object.defineProperty(navigator, 'plugins', {
+      // This just needs to have `length > 0` for the current test,
+      // but we could mock the plugins too if necessary.
+      get: () => [1, 2, 3, 4, 5],
+    });
+  });
+  
+  await page2.evaluateOnNewDocument(() => {
+    // Overwrite the `languages` property to use a custom getter.
+    Object.defineProperty(navigator, 'languages', {
+      get: () => ['en-US', 'en'],
+    });
+  });
+  await page2.setDefaultNavigationTimeout(0);
+}
 function sleep(milliseconds) {
   const date = Date.now();
   let currentDate = null;
@@ -35,7 +92,7 @@ module.exports = async function validateIdplrAccount(accounts, app) {
         });
         const browser = await puppeteer.launch({
           headless: false,
-          // slowMo: 100,
+          slowMo: 50,
           defaultViewport: null,
           ignoreHTTPSErrors: true,
           args: [
@@ -47,8 +104,11 @@ module.exports = async function validateIdplrAccount(accounts, app) {
         browsers.push(browser);
         sleep(15000);
         const page = await browser.newPage();
-        await page.setDefaultNavigationTimeout(0);
-        await page.goto('https://generator.email/');
+        await protectePage(page);
+        await Promise.all([
+          page.goto('https://generator.email/'),
+          page.waitForNavigation({waitUntil: 'networkidle2'})
+        ]);
         await page.bringToFront();
         await page.waitForSelector('#userName');
         await page.$eval('#userName', (el,username) => el.value = username, username);
@@ -60,11 +120,18 @@ module.exports = async function validateIdplrAccount(accounts, app) {
         console.log({url});
         // await page.goto('https://www.idplr.com/members/signup/f1?em=DQGHbO1nszlrD0dHRI4c'); 
         const page2 = await browser.newPage();
-        await page2.goto(url);
+        await protectePage(page2);
+        await Promise.all([
+          page2.goto(url),
+          page2.waitForNavigation({waitUntil: 'networkidle2'})
+        ]);
         
         await page2.waitFor(30 * 1000);
         // wait for new page to open
-        await page2.goto(url);
+        await Promise.all([
+          page2.goto(url),
+          page2.waitForNavigation({waitUntil: 'networkidle2'})
+        ]);
         await page2.waitForSelector('#name_f');
         let pseudo = genUsername.generateUsername('', 3);
         pseudo = username.replace(/-/mg,'');
@@ -80,7 +147,10 @@ module.exports = async function validateIdplrAccount(accounts, app) {
         await page2.type('#pass-0', password);
         await page2.type('#pass-confirm', password);
         sleep(2000);
-        await page2.click('#_qf_page-2_next-0');
+        await Promise.all([
+          page2.click('#_qf_page-2_next-0'),
+          page2.waitForNavigation({waitUntil: 'networkidle2'})
+        ]);
         await page2.waitForSelector('body > div.am-layout.am-common > div.am-body > div > div.am-body-content > div.am-body-content-content > div.am-receipt > div > table > thead > tr');
         element.isValidate = true;
         element.firstName = firstName;

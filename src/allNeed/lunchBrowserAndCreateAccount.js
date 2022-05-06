@@ -5,6 +5,7 @@ puppeteer.use(StealthPlugin());
 const AdblockerPlugin = require('puppeteer-extra-plugin-adblocker');
 puppeteer.use(AdblockerPlugin({ blockTrackers: true }));
 const randomUseragent = require('random-useragent');
+
 // var randomMac = require('random-mac');
 // const output = execSync(`tmac -n Ethernet -m ${randomMac} -re`, { encoding: 'utf-8' }); // the default is 'buffer'
 // console.log('Output was:\n', output, randomMac);
@@ -13,6 +14,62 @@ const randomUseragent = require('random-useragent');
 // objShell.ShellExecute("cmd.exe", `C: tmac -n Ethernet -m ${randomMac} -re`, "C: \\WINDOWS\\ system32 ", "open ", "1");
 
 // var cmd = require('node-cmd');
+async function protectePage(page2) {
+  await page2.setJavaScriptEnabled(true);
+  await page2.setDefaultNavigationTimeout(0);
+    
+  //Skip images/styles/fonts loading for performance
+  await page2.setRequestInterception(true);
+  page2.on('request', (req) => {
+    if(req.resourceType() == 'stylesheet' || req.resourceType() == 'font' || req.resourceType() == 'image'){
+      req.abort();
+    } else {
+      req.continue();
+    }
+  });
+    
+  await page2.evaluateOnNewDocument(() => {
+    // Pass webdriver check
+    Object.defineProperty(navigator, 'webdriver', {
+      get: () => false,
+    });
+  });
+
+  await page2.evaluateOnNewDocument(() => {
+    // Pass chrome check
+    window.chrome = {
+      runtime: {},
+      // etc.
+    };
+  });
+  
+  await page2.evaluateOnNewDocument(() => {
+    //Pass notifications check
+    const originalQuery = window.navigator.permissions.query;
+    return window.navigator.permissions.query = (parameters) => (
+      parameters.name === 'notifications' ?
+        Promise.resolve({ state: Notification.permission }) :
+        originalQuery(parameters)
+    );
+  });
+  
+  await page2.evaluateOnNewDocument(() => {
+    // Overwrite the `plugins` property to use a custom getter.
+    Object.defineProperty(navigator, 'plugins', {
+      // This just needs to have `length > 0` for the current test,
+      // but we could mock the plugins too if necessary.
+      get: () => [1, 2, 3, 4, 5],
+    });
+  });
+  
+  await page2.evaluateOnNewDocument(() => {
+    // Overwrite the `languages` property to use a custom getter.
+    Object.defineProperty(navigator, 'languages', {
+      get: () => ['en-US', 'en'],
+    });
+  });
+  await page2.setDefaultNavigationTimeout(0);
+}
 function sleep(milliseconds) {
   const date = Date.now();
   let currentDate = null;
@@ -32,9 +89,10 @@ puppeteer.use(
   })
 );
 module.exports = async function lunchBrowserAndCreateAccount(accounts, app) {
+  process.setMaxListeners(0);
   if (accounts && accounts.length > 0) {
     try {
-      const lastPort = 9709;
+      const lastPort = 9809;
       const listAccount = await app.service('idplr-account').find({
         query: {
           isCreated: true,
@@ -44,7 +102,6 @@ module.exports = async function lunchBrowserAndCreateAccount(accounts, app) {
           }
         }
       });
-      let browsers = [];
       let nbReussi = 0;
       await Promise.all(accounts.map(async (element, index) => {
         const port = listAccount.data.length > 0 ? parseFloat(listAccount.data[0].port) + index + 1 : 9216 + index + 1;
@@ -56,7 +113,7 @@ module.exports = async function lunchBrowserAndCreateAccount(accounts, app) {
           // '--proxy-server=socks5://127.0.0.1:' + port
           const browser = await puppeteer.launch({
             headless: false,
-            slowMo: 150,
+            slowMo: 80,
             defaultViewport: null,
             ignoreHTTPSErrors: true,
             args: [
@@ -64,13 +121,17 @@ module.exports = async function lunchBrowserAndCreateAccount(accounts, app) {
               '--no-sandbox', '--disable-features=IsolateOrigins', userAgent,' --disable-site-isolation-trials',
               '--proxy-server=socks5://127.0.0.1:' + port
             ]
-            ,executablePath: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
           });
-          browsers.push(browser);
           sleep(15000);
+          console.log('test221');
           const page = await browser.newPage();
-          await page.setDefaultNavigationTimeout(0);
-          await page.goto('https://www.idplr.com/members/aff/go/zohoun');
+          await protectePage(page);
+          console.log('test221==');
+          await Promise.all([
+            page.goto('https://www.idplr.com/members/aff/go/zohoun'),
+            page.waitForNavigation({waitUntil: 'networkidle2'})
+          ]);
+          
           try {
 
             await page.bringToFront();
@@ -95,60 +156,7 @@ module.exports = async function lunchBrowserAndCreateAccount(accounts, app) {
             //   isLandscape: false,
             //   isMobile: false,
             // });
-            await page2.setJavaScriptEnabled(true);
-            await page2.setDefaultNavigationTimeout(0);
-    
-            //Skip images/styles/fonts loading for performance
-            await page2.setRequestInterception(true);
-            page2.on('request', (req) => {
-              if(req.resourceType() == 'stylesheet' || req.resourceType() == 'font' || req.resourceType() == 'image'){
-                req.abort();
-              } else {
-                req.continue();
-              }
-            });
-    
-            await page2.evaluateOnNewDocument(() => {
-              // Pass webdriver check
-              Object.defineProperty(navigator, 'webdriver', {
-                get: () => false,
-              });
-            });
-
-            await page2.evaluateOnNewDocument(() => {
-              // Pass chrome check
-              window.chrome = {
-                runtime: {},
-                // etc.
-              };
-            });
-  
-            await page2.evaluateOnNewDocument(() => {
-              //Pass notifications check
-              const originalQuery = window.navigator.permissions.query;
-              return window.navigator.permissions.query = (parameters) => (
-                parameters.name === 'notifications' ?
-                  Promise.resolve({ state: Notification.permission }) :
-                  originalQuery(parameters)
-              );
-            });
-  
-            await page2.evaluateOnNewDocument(() => {
-              // Overwrite the `plugins` property to use a custom getter.
-              Object.defineProperty(navigator, 'plugins', {
-                // This just needs to have `length > 0` for the current test,
-                // but we could mock the plugins too if necessary.
-                get: () => [1, 2, 3, 4, 5],
-              });
-            });
-  
-            await page2.evaluateOnNewDocument(() => {
-              // Overwrite the `languages` property to use a custom getter.
-              Object.defineProperty(navigator, 'languages', {
-                get: () => ['en-US', 'en'],
-              });
-            });
-            await page2.setDefaultNavigationTimeout(0);
+            await protectePage(page2);
             await page2.goto(yourHref, { waitUntil: 'networkidle2',timeout: 0 } );
             await page2.waitForSelector('#email-0');
             await page2.type('#email-0', element.fakeEmail);
@@ -156,57 +164,29 @@ module.exports = async function lunchBrowserAndCreateAccount(accounts, app) {
 
             sleep(15000);
             try {
-              let frames = await page2.frames();
-              const recaptchaFrame = frames.find(frame => frame.url().includes('api2/anchor'));
-
-              const exist = await recaptchaFrame.$('#recaptcha-anchor', () => true).catch(() => false);
-              console.log({ exist });
-              if (exist) {
-                await page2.solveRecaptchas();
-                await Promise.all([
-                  page2.click('#_qf_page-0_next-0'),
-                  page2.waitForNavigation({waitUntil: 'networkidle2'})
+              await page2.solveRecaptchas();
+              await Promise.all([
+                page2.click('#_qf_page-0_next-0'),
+                page2.waitForNavigation({waitUntil: 'networkidle2'})
               ]);
-                sleep(15000);
-                const exists = await page2.$eval('body > div.am-layout.am-common > div.am-body > div > div.am-body-content > div.am-body-content-content > div > div.am-info.am-login-text', () => true).catch(() => false);
-                if (!exists) {
-                  console.log({ exists });
-                  element.port = port;
-                  element.isCreated = true;
-                  await app.service('idplr-account').patch(element._id, element);
-                  nbReussi = nbReussi + 1;
-                }
+              sleep(15000);
+              const exists = await page2.$eval('body > div.am-layout.am-common > div.am-body > div > div.am-body-content > div.am-body-content-content > div > div.am-info.am-login-text', () => true).catch(() => false);
+              if (!exists) {
+                console.log({ exists });
+                element.port = port;
+                element.isCreated = true;
+                await app.service('idplr-account').patch(element._id, element);
+                nbReussi = nbReussi + 1;
               }
-
-              return true;
             } catch (error) {
-              return false;
+              console.log({error});
             }
-
-
           } catch (error) {
-            element.isRefused = true;
             console.log(error);
-            // await app.service('idplr-account').patch(element._id, element);
-
-            // await browser.close()
           }
         } else {
         }
       }));
-      sleep(100000);
-      for (let i = 0; i < browsers.length; i++) {
-        const browser = browsers[i];
-        await browser.close();
-      }
-      
-      if (nbReussi > 0) {
-        await app.service('validate-idplr-account').find();
-      }
-      else{
-        await app.service('lunch-creation-pending-account').find();
-      }
-      
 
     } catch (error) {
       console.log(error);
