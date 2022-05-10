@@ -4,6 +4,7 @@ const validateIdplrAccount = require('../allNeed/validateIdplrAccount');
 // eslint-disable-next-line no-unused-vars
 module.exports = (options = {}) => {
     return async context => {
+        
         const email = await context.app.service('idplr-account').find({
             query: {
                 isValidate: false,

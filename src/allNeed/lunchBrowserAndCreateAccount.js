@@ -122,6 +122,10 @@ module.exports = async function lunchBrowserAndCreateAccount(accounts, app) {
               '--proxy-server=socks5://127.0.0.1:' + port
             ]
           });
+          browser.on('disconnected', async () => {
+           if(browser) await browser.close()
+            if (browser.process() != null) browser.process().kill('SIGINT');
+          });
           sleep(15000);
           console.log('test221');
           const page = await browser.newPage();

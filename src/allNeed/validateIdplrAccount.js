@@ -99,7 +99,8 @@ module.exports = async function validateIdplrAccount(accounts, app) {
             '--start-maximized',
             '--no-sandbox', '--disable-dev-shm-usage', '--disable-features=IsolateOrigins', ' --disable-site-isolation-trials',
             '--proxy-server=socks5://127.0.0.1:' + port
-          ]
+          ],
+          // executablePath:'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
         });
         browsers.push(browser);
         sleep(15000);
