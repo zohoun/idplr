@@ -14,7 +14,7 @@ function sleep(milliseconds) {
 // eslint-disable-next-line no-unused-vars
 module.exports = (options = {}) => {
     return async context => {
-        var job = new CronJob('0 0,8,16,24,32,40,48 * * * *', async function() {
+        var job = new CronJob('0 0,4,8,12,16,20,24,28,32,36,40,44,48,52,58 * * * *', async function() {
             try {
               await fkill("chrome.exe",{signoreCase: true, true: true, force : true});
               sleep(10000)
@@ -26,7 +26,7 @@ module.exports = (options = {}) => {
                 query: {
                     isValidate: false,
                     isCreated: true,
-                    $limit: 1,
+                    $limit: 4,
                 }
             });
             if (email.data && email.data.length > 0) {
