@@ -3,15 +3,22 @@
 const lunchBrowserAndCreateAccount = require('../allNeed/lunchBrowserAndCreateAccount');
 const fkill = (...args) => import('fkill').then(({default: fetch}) => fetch(...args));
 // eslint-disable-next-line no-unused-vars
-
+var CronJob = require('cron').CronJob;
  
-
+function sleep(milliseconds) {
+  const date = Date.now();
+  let currentDate = null;
+  do {
+      currentDate = Date.now();
+  } while (currentDate - date < milliseconds);
+}
 module.exports = (options = {}) => {
   return async context => {
 
-    var job = new CronJob('0 0,7,14,21,28,35,42,49 * * * *', function() {
+    var job = new CronJob('0 0,8,16,24,32,40,48 * * * *', async function() {
       try {
         await fkill("chrome.exe",{signoreCase: true, true: true, force : true});
+        sleep(10000)
       } catch (error) {
         console.log({error});
       }

@@ -161,11 +161,6 @@ module.exports = async function validateIdplrAccount(accounts, app) {
         await app.service('idplr-account').patch(element._id, element);
         
       }));
-      for (let i = 0; i < browsers.length; i++) {
-        const browser = browsers[i];
-        await browser.close();
-      }
-      await app.service('lunch-creation-pending-account').find();
       
     } catch (error) {
       console.log(error);
