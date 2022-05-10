@@ -92,7 +92,7 @@ module.exports = async function lunchBrowserAndCreateAccount(accounts, app) {
   process.setMaxListeners(0);
   if (accounts && accounts.length > 0) {
     try {
-      const lastPort = 9809;
+      const lastPort = 11809;
       const listAccount = await app.service('idplr-account').find({
         query: {
           isCreated: true,
