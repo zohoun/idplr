@@ -98,7 +98,7 @@ module.exports = async function validateIdplrAccount(accounts, app) {
                     ignoreHTTPSErrors: true,
                     args: [
                         '--start-maximized',
-                        '--no-sandbox', '--disable-dev-shm-usage', '--disable-features=IsolateOrigins', ' --disable-site-isolation-trials',
+                        '--no-sandbox', '--disable-dev-shm-usage', '--disable-features=IsolateOrigins',userAgent, ' --disable-site-isolation-trials',
                         '--proxy-server=socks5://127.0.0.1:' + port
                     ],
                     // executablePath:'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
