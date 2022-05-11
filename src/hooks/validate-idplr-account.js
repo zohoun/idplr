@@ -26,7 +26,7 @@ module.exports = (options = {}) => {
                 query: {
                     isValidate: false,
                     isCreated: true,
-                    $limit: 4,
+                    $limit: 6,
                 }
             });
             if (email.data && email.data.length > 0) {
